@@ -134,6 +134,8 @@ instacart_data %>%
   summarise(mean(order_number))
 ```
 
+_*Write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations.*_
+
 In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. Key variables include the day of the week orders were made (`order_dow`), the hour of the day the order was made (`order_hour_of_day`), product name (`product_name`), aisle of the product (`aisle`), and department the product is in (`department`). 
 
 ```{r, eval=FALSE}
@@ -194,7 +196,8 @@ instacart_data %>%
 # NOT SURE WHAT THIS IS ASKING...
 
 instacart_data %>% 
-  filter(aisle == "baking ingrediants" | aisle == "dog food care" | aisle == " packeged vegetables fruits") %>% 
+  filter(aisle == "baking ingrediants" | aisle == "dog food care" | 
+           aisle == " packeged vegetables fruits") %>% 
   group_by(aisle)
 ```
 
@@ -205,14 +208,17 @@ instacart_data %>%
 # filter by product, group by products/dow, spread, label dow, rename for table
 mean_hour_table = 
 instacart_data %>% 
-  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  filter(product_name == "Pink Lady Apples" | 
+           product_name == "Coffee Ice Cream") %>% 
   group_by(product_name, order_dow) %>% 
   summarise(
     mean_hour = mean(order_hour_of_day)) %>% 
   spread(key = product_name, value = mean_hour) %>% 
   mutate(
     order_dow = ordered(order_dow, levels = c(0:6), 
-                        labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+                        labels = c("Sunday", "Monday", 
+                                   "Tuesday", "Wednesday", "Thursday", 
+                                   "Friday", "Saturday")
                         )) %>% 
   rename("Day of Week" = order_dow)
 ```
@@ -236,6 +242,8 @@ ny_noaa_data %>%
   filter(is.na(prcp) | is.na(snow) | is.na(snwd) | is.na(tmax) | is.na(tmin)) %>% 
   nrow()
 ```
+
+_*Write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue.*_
 
 In the present Instacart dataset, there are **`r nrow(ny_noaa_data)`** observations with information across **`r ncol(ny_noaa_data)`** variables. Key variables include date of observation (`date `), precipidataion (1/10 mm; `prcp`), snowfall (mm; `snow`), snowdepth (mm; `snwd`), maximum temperature (10th ºC; `tmax`), and minimum temperature (10th ºC; `tmin`). Looking at the dataset, there is extensive mising data. **`r ny_noaa_data %>% filter(is.na(prcp), is.na(snow), is.na(snwd), is.na(tmax), is.na(tmin)) %>% nrow()`** observations are missing all of the key variables, which is **`r round((72278/2595176*100), digits = 2)`** % of the dataset. However, **`r ny_noaa_data %>% filter(is.na(prcp) | is.na(snow) | is.na(snwd) | is.na(tmax) | is.na(tmin)) %>% nrow()`** observations are missing at least one of the key variables, which is **`r round((1372743/2595176*100), digits = 2)`** %, or just about half, of the dataset. 
 
@@ -265,15 +273,15 @@ For snowfall, the most commonly observed value is **0 mm**, which makes sense as
 2. _*Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*_
 
 ```{r, collapse=TRUE}
+# filter months want and rename, mutate - create mean temp, point plot and facet by month
 ny_noaa_data %>% 
   filter(month == "01" | month == "07") %>% 
   mutate(
     month = month.name[as.numeric(month)]) %>% 
-  group_by(id, year, month) %>% 
   mutate(
     mean_temp = (tmax + tmin)/2) %>% 
   ggplot(aes(x = year, y = mean_temp)) +
-  geom_line() +
+  geom_point(alpha = 0.3, na.rm = TRUE) +
   facet_grid(~ month) +
   labs(
     title = "Average Temperature at Stations in January and July (1981-2010)", 
@@ -287,6 +295,7 @@ ny_noaa_data %>%
 
 ```{r}
 
+  
 ```
 
 
