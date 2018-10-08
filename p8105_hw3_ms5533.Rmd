@@ -12,6 +12,8 @@ library(tidyverse)
 library(ggridges)
 library(patchwork)
 library(ggthemes)
+library(knitr)
+library("p8105.datasets")
 
 theme_set(theme_bw() + theme(legend.position = "bottom"))
 ```
@@ -21,12 +23,8 @@ theme_set(theme_bw() + theme(legend.position = "bottom"))
 Data cleaning
 
 ```{r, collapse=TRUE}
-# add library that includes dataset 
-library("p8105.datasets")
-
 # import brfss_smart2010 data, clean names, filter by "Overall Health", remove unwanted vars
 # make "response" a factor variable
-
 brfss_data = 
   brfss_smart2010 %>% 
   janitor::clean_names() %>% 
@@ -45,7 +43,6 @@ brfss_data =
 
 ```{r, collapse=TRUE}
 # Filter by year, group by state, summarize number of locations in each state
-
 brfss_data %>% 
   filter(year == 2002) %>% 
   group_by(locationabbr) %>% 
@@ -62,7 +59,6 @@ brfss_data %>%
 ```{r, collapse=TRUE}
 # Group by year and state, summarize number of locations in each state (n)
 # Line plot of year vs n, turn off legend --> too many states
-
 brfss_data %>% 
   group_by(year, locationabbr) %>% 
   summarise(
@@ -84,24 +80,25 @@ brfss_data %>%
 # Filter: 1) NY, 2) year (2002, 2006, 2010)
 # Group by location 
 # "data_value" = proportion 
-
+excellent_table = 
 brfss_data %>% 
   filter(locationabbr == "NY") %>% 
   filter(year == 2002 | year == 2006 | year == 2010) %>% 
   filter(response == "Excellent") %>% 
   group_by(year) %>% 
   summarise(
-    mean_excellent = mean(data_value), 
-    sd_excellent = sd(data_value)
-  )
+    mean = mean(data_value),
+    std_dev = sd(data_value))
 ```
+
+**Average and standard deviation of proportion of "Excellent" responses in NY**
+`r kable(excellent_table, digits = 2)`
 
 4. _*For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.*_
 
 ```{r, collapse=TRUE}
 # Group by year, state, and response, mean of "data_value"
 # Line plot year vs mean, facet by "response", turn off legend --> too many states 
-
 brfss_data %>% 
   group_by(year, locationabbr, response) %>% 
   summarise(
@@ -117,50 +114,112 @@ brfss_data %>%
     legend = "State") +
   viridis::scale_color_viridis(discrete = TRUE) +
   theme(legend.position = "none")
+
+# DONT LOVE THE X AXIS ON THIS ONE
 ```
 
 
 ## Problem 2
 
+Data exploration 
+
 ```{r, collapse=TRUE}
 # import dataset
 instacart_data = instacart 
+
+instacart_data %>% 
+  summarise(
+    sum(reordered)/nrow(instacart_data)*100
+  )
+instacart_data %>% 
+  summarise(mean(order_number))
 ```
 
-Data exploration 
+In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. 
 
-```{r}
+```{r, eval=FALSE}
 
+# trying to make plots...not working
+
+hour_of_day_plot = 
+  instacart_data %>% 
+  ggplot(aes(x = order_hour_of_day)) +
+  geom_histogram()
+
+days_since_prior_plot
+
+dow_plot
+
+department_plot
+
+# (tmax_tmin_p + prcp_dens_p) / tmax_date_p
 ```
 
-Short description, size and structure, key variables and illustrative examples of obs 
 
 ### Questions 
 
 1. _*How many aisles are there, and which aisles are the most items ordered from?*_
 
-```{r}
+```{r, collapse=TRUE}
+# Distinct aisles
+instacart_data %>% 
+  summarise(number = n_distinct(aisle_id))
 
+# Number of items in each aisle --> arrange desc
+instacart_data %>%
+  group_by(aisle) %>% 
+  summarise(number = n()) %>% 
+  arrange(desc(number))
 ```
+
+There are **`r instacart_data %>% summarise(number = n_distinct(aisle_id))`** distinct aisles. **Fresh vegetables** and **frush fruits** are the two most frequenly ordered from aisles by a factor of 10, followed by **package vegetables/fruits, yogurt, and packaged cheese**.  
 
 2. _*Make a plot that shows the number of items ordered in each aisle. Order aisles sensibly, and organize your plot so others can read it.*_
 
-```{r}
+```{r, eval=FALSE}
 
+# THESE ARE LOOKING REAL FUNKY...
+
+instacart_data %>%
+  group_by(aisle, department) %>% 
+  summarise(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  ggplot(aes(x = aisle, y = number)) +
+  geom_bar(stat = "identity") +
+  facet_grid(~ department)
 ```
 
 3. _*Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.*_
 
-```{r}
+```{r, eval=FALSE}
+# NOT SURE WHAT THIS IS ASKING...
 
+instacart_data %>% 
+  filter(aisle == "baking ingrediants" | aisle == "dog food care" | aisle == " packeged vegetables fruits") %>% 
+  group_by(aisle)
 ```
 
 4. _*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*_
 
 ```{r}
-
+# Mean hour of the day each object is purchases on each day of the week
+# filter by product, group by products/dow, spread, label dow, rename for table
+mean_hour_table = 
+instacart_data %>% 
+  filter(product_name == "Pink Lady Apples" | product_name == "Coffee Ice Cream") %>% 
+  group_by(product_name, order_dow) %>% 
+  summarise(
+    mean_hour = mean(order_hour_of_day)) %>% 
+  spread(key = product_name, value = mean_hour) %>% 
+  mutate(
+    order_dow = ordered(order_dow, levels = c(0:6), 
+                        labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+                        )) %>% 
+  rename("Day of Week" = order_dow)
 ```
 
+**Average hour of the day products are purchased**
+`r kable(mean_hour_table, digits = 2)`
 
 ## Problem 3
 
