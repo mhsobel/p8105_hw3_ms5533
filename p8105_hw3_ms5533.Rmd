@@ -45,21 +45,24 @@ brfss_data =
 
 ```{r, collapse=TRUE}
 # Filter by year, group by state, summarize number of locations in each state
+
 brfss_data %>% 
   filter(year == 2002) %>% 
   group_by(locationabbr) %>% 
   summarise(
-    number = n()
-  )
+    number = n_distinct(locationdesc)
+  ) %>% 
+  filter(number == 7)
 ```
 
-**None** (????)
+**Connecticut, Florida, and North Caroline** were observed at 7 locations in 2002.
 
 2. _*Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.*_
 
 ```{r, collapse=TRUE}
 # Group by year and state, summarize number of locations in each state (n)
-# Line plot of year vs n
+# Line plot of year vs n, turn off legend --> too many states
+
 brfss_data %>% 
   group_by(year, locationabbr) %>% 
   summarise(
@@ -72,9 +75,7 @@ brfss_data %>%
     y = "Number of Obs", 
     legend = "State") +
   viridis::scale_color_viridis(discrete = TRUE) +
-  theme(legend.position = "right")
-
-# CANNOT GET LEGEND TO LABEL
+  theme(legend.position = "none")
 ```
 
 3. _*Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.*_
@@ -82,20 +83,40 @@ brfss_data %>%
 ```{r, collapse=TRUE}
 # Filter: 1) NY, 2) year (2002, 2006, 2010)
 # Group by location 
-# Confused about how to get proportion, but do notice the order is the same each time (excellent --> poor)
+# "data_value" = proportion 
 
 brfss_data %>% 
   filter(locationabbr == "NY") %>% 
   filter(year == 2002 | year == 2006 | year == 2010) %>% 
-  group_by(locationdesc)
-  
-# mutate(prop_excellent = (excellent) /(excellent + very_good + good + fair + poor)) does not work anymore because data structrue is long, not wide
+  filter(response == "Excellent") %>% 
+  group_by(year) %>% 
+  summarise(
+    mean_excellent = mean(data_value), 
+    sd_excellent = sd(data_value)
+  )
 ```
 
 4. _*For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.*_
 
-```{r}
+```{r, collapse=TRUE}
+# Group by year, state, and response, mean of "data_value"
+# Line plot year vs mean, facet by "response", turn off legend --> too many states 
 
+brfss_data %>% 
+  group_by(year, locationabbr, response) %>% 
+  summarise(
+    mean = mean(data_value, na.rm = TRUE)
+  ) %>% 
+  ggplot(aes(x = year, y = mean, color = locationabbr)) +
+  geom_line(alpha = .5) +
+  facet_grid(~ response) + 
+  labs(
+    title = "Average Percent of Each Response by State (2002-2010)", 
+    x = "Year", 
+    y = "Average Percent", 
+    legend = "State") +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme(legend.position = "none")
 ```
 
 
