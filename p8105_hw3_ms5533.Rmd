@@ -1,0 +1,51 @@
+---
+title: "Homework 3"
+author: "Marisa Sobel"
+date: "10/7/2018"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+  )
+
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+library(ggthemes)
+
+theme_set(theme_bw() + theme(legend.position = "bottom"))
+```
+
+## Problem 1 
+
+Data cleaning
+
+```{r, collapse=TRUE}
+# add library that includes dataset 
+library("p8105.datasets")
+
+# import brfss_smart2010 data, clean names, filter by "Overall Health", remove unwanted vars
+# make "response" a factor variable
+
+brfss_data = 
+  brfss_smart2010 %>% 
+  janitor::clean_names() %>% 
+  filter(topic == "Overall Health") %>% 
+  select(-class, -topic, -question, 
+         -sample_size, -(confidence_limit_low:geo_location)) %>% 
+  mutate(
+    response = factor(response, 
+                      levels = c("Excellent", "Very good", "Good", "Fair", "Poor"))
+  )
+
+brfss_data
+```
+
+### Questions
+
+1. _*In 2002, which states were observed at 7 locations?*_
+
