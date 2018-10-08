@@ -42,7 +42,7 @@ brfss_data =
 1. _*In 2002, which states were observed at 7 locations?*_
 
 ```{r, collapse=TRUE}
-# Filter by year, group by state, summarize number of locations in each state
+# filter by year, group by state, summarize number of locations in each state
 brfss_data %>% 
   filter(year == 2002) %>% 
   group_by(locationabbr) %>% 
@@ -57,8 +57,8 @@ brfss_data %>%
 2. _*Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.*_
 
 ```{r, collapse=TRUE}
-# Group by year and state, summarize number of locations in each state (n)
-# Line plot of year vs n, turn off legend --> too many states
+# group by year and state, summarize number of locations in each state (n)
+# line plot of year vs n, turn off legend --> too many states
 brfss_data %>% 
   group_by(year, locationabbr) %>% 
   summarise(
@@ -77,8 +77,8 @@ brfss_data %>%
 3. _*Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.*_
 
 ```{r, collapse=TRUE}
-# Filter: 1) NY, 2) year (2002, 2006, 2010)
-# Group by location 
+# filter: 1) NY, 2) year (2002, 2006, 2010)
+# group by location 
 # "data_value" = proportion 
 excellent_table = 
 brfss_data %>% 
@@ -97,8 +97,8 @@ brfss_data %>%
 4. _*For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.*_
 
 ```{r, collapse=TRUE}
-# Group by year, state, and response, mean of "data_value"
-# Line plot year vs mean, facet by "response", turn off legend --> too many states 
+# group by year, state, and response, mean of "data_value"
+# line plot year vs mean, facet by "response", turn off legend --> too many states 
 brfss_data %>% 
   group_by(year, locationabbr, response) %>% 
   summarise(
@@ -113,9 +113,8 @@ brfss_data %>%
     y = "Average Percent", 
     legend = "State") +
   viridis::scale_color_viridis(discrete = TRUE) +
-  theme(legend.position = "none")
-
-# DONT LOVE THE X AXIS ON THIS ONE
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 
@@ -135,7 +134,7 @@ instacart_data %>%
   summarise(mean(order_number))
 ```
 
-In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. 
+In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. Key variables include the day of the week orders were made (`order_dow`), the hour of the day the order was made (`order_hour_of_day`), product name (`product_name`), aisle of the product (`aisle`), and department the product is in (`department`). 
 
 ```{r, eval=FALSE}
 
@@ -161,11 +160,11 @@ department_plot
 1. _*How many aisles are there, and which aisles are the most items ordered from?*_
 
 ```{r, collapse=TRUE}
-# Distinct aisles
+# distinct aisles
 instacart_data %>% 
   summarise(number = n_distinct(aisle_id))
 
-# Number of items in each aisle --> arrange desc
+# number of items in each aisle --> arrange desc
 instacart_data %>%
   group_by(aisle) %>% 
   summarise(number = n()) %>% 
@@ -202,7 +201,7 @@ instacart_data %>%
 4. _*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*_
 
 ```{r}
-# Mean hour of the day each object is purchases on each day of the week
+# mean hour of the day each object is purchases on each day of the week
 # filter by product, group by products/dow, spread, label dow, rename for table
 mean_hour_table = 
 instacart_data %>% 
@@ -223,31 +222,65 @@ instacart_data %>%
 
 ## Problem 3
 
+Data exploration 
+
 ```{r, collapse=TRUE}
 # import dataset
 ny_noaa_data = ny_noaa 
+
+ny_noaa_data %>% 
+  filter(is.na(prcp), is.na(snow), is.na(snwd), is.na(tmax), is.na(tmin)) %>% 
+  nrow()
+
+ny_noaa_data %>% 
+  filter(is.na(prcp) | is.na(snow) | is.na(snwd) | is.na(tmax) | is.na(tmin)) %>% 
+  nrow()
 ```
 
-Data exploration 
-
-```{r}
-
-```
-
-Short description, size and structure, key variables, indicating the extent to which missing data is an issue. 
+In the present Instacart dataset, there are **`r nrow(ny_noaa_data)`** observations with information across **`r ncol(ny_noaa_data)`** variables. Key variables include date of observation (`date `), precipidataion (1/10 mm; `prcp`), snowfall (mm; `snow`), snowdepth (mm; `snwd`), maximum temperature (10th ºC; `tmax`), and minimum temperature (10th ºC; `tmin`). Looking at the dataset, there is extensive mising data. **`r ny_noaa_data %>% filter(is.na(prcp), is.na(snow), is.na(snwd), is.na(tmax), is.na(tmin)) %>% nrow()`** observations are missing all of the key variables, which is **`r round((72278/2595176*100), digits = 2)`** % of the dataset. However, **`r ny_noaa_data %>% filter(is.na(prcp) | is.na(snow) | is.na(snwd) | is.na(tmax) | is.na(tmin)) %>% nrow()`** observations are missing at least one of the key variables, which is **`r round((1372743/2595176*100), digits = 2)`** %, or just about half, of the dataset. 
 
 ### Questions
 
 1. _*Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?*_
 
-```{r}
+```{r, collapse=TRUE}
+# separate date variable, change 1/10th unit values by dividing by 10
+ny_noaa_data = 
+  ny_noaa_data %>% 
+  separate(date, c("year", "month", "day")) %>% 
+  mutate(
+    prcp = prcp/10, 
+    tmax = as.numeric(tmax)/10, 
+    tmin = as.numeric(tmin)/10
+  )
 
+# most commonly observed values for snowfall --> count values and arrange desc
+ny_noaa_data %>% 
+  count(snow) %>% 
+  arrange(desc(n))
 ```
+
+For snowfall, the most commonly observed value is **0 mm**, which makes sense as most days of the year is is not snowing in New York. 
 
 2. _*Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*_
 
-```{r}
-
+```{r, collapse=TRUE}
+ny_noaa_data %>% 
+  filter(month == "01" | month == "07") %>% 
+  mutate(
+    month = month.name[as.numeric(month)]) %>% 
+  group_by(id, year, month) %>% 
+  mutate(
+    mean_temp = (tmax + tmin)/2) %>% 
+  ggplot(aes(x = year, y = mean_temp)) +
+  geom_line() +
+  facet_grid(~ month) +
+  labs(
+    title = "Average Temperature at Stations in January and July (1981-2010)", 
+    x = "Year", 
+    y = "Average Temperature", 
+    legend = "State") +
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 3. _*Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*_
