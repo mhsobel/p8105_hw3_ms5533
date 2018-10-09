@@ -174,13 +174,6 @@ department_plot =
 
 In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. Key variables include the day of the week orders were made (`order_dow`), the hour of the day the order was made (`order_hour_of_day`), product name (`product_name`), aisle of the product (`aisle`), and department the product is in (`department`). Histograms (shown above) show that: Sunday is the most popular day, midday is the most time of day, most people wait a full month before ordering, and perishables are the most popular types of items purchased. 
 
-```{r}
-instacart_data %>% 
-  ggplot(aes(x = order_hour_of_day, y = order_dow)) +
-  geom_point()
-```
-
-
 ### Questions 
 
 1. _*How many aisles are there, and which aisles are the most items ordered from?*_
