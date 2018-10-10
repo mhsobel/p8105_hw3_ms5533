@@ -173,7 +173,7 @@ department_plot =
 (hour_of_day_plot + days_since_prior_order_plot) / (dow_plot + department_plot)
 ```
 
-In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. Key variables include the day of the week orders were made (`order_dow`), the hour of the day the order was made (`order_hour_of_day`), product name (`product_name`), aisle of the product (`aisle`), and department the product is in (`department`). Histograms (shown above) show that: Sunday is the most popular day, midday is the most time of day, most people wait a full month before ordering, and perishables are the most popular types of items purchased. 
+In the present Instacart dataset, there are **`r nrow(instacart_data)`** observations of specific items ordered with information across **`r ncol(instacart_data)`** variables. **59.9%** of items were reorded from previous orders. The listed order was, on average, the **17th** order for individuals. Key variables include the day of the week orders were made (`order_dow` with 0 coded as Sunday), the hour of the day the order was made (`order_hour_of_day`), product name (`product_name`), aisle of the product (`aisle`), and department the product is in (`department`). Histograms (shown above) show that: Sunday is the most popular day, midday is the most time of day, most people wait a full month before ordering, and perishables are the most popular types of items purchased. 
 
 ### Questions 
 
@@ -200,11 +200,66 @@ There are **`r instacart_data %>% summarise(number = n_distinct(aisle_id))`** di
 # THESE ARE LOOKING REAL FUNKY...
 
 instacart_data %>%
+  group_by(aisle_id, department) %>% 
+  summarise(number = n()) %>% 
+  ggplot(aes(x = aisle_id, y = number, color = department)) +
+  geom_bar(stat = "identity")
+
+instacart_data %>%
+  group_by(aisle_id, department) %>% 
+  summarise(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  ggplot(aes(x = aisle_id, y = number, color = department)) +
+  geom_bar(stat = "identity") +
+  labs(
+    y = "Number of items ordered", 
+    x = "Aisle ID",
+    title = "Number of items ordered by aisles"
+  ) +
+  viridis::scale_color_viridis(discrete = TRUE)
+
+instacart_data %>%
   group_by(aisle, department) %>% 
   summarise(number = n()) %>% 
   arrange(desc(number)) %>% 
-  ggplot(aes(x = aisle, y = number)) +
-  geom_bar(stat = "identity")
+  ggplot(aes(x = aisle, y = number, color = department)) +
+  geom_bar(stat = "identity") +
+  labs(
+    y = "Number of items ordered", 
+    x = "Aisle ID",
+    title = "Number of items ordered by aisles"
+  ) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90, hjust=1, vjust=0.5), text=element_text(size=6)) +
+  theme(legend.position = "right")
+  guides(col = guide_legend(ncol = 1))
+
+instacart_data %>%
+  group_by(aisle_id, department) %>% 
+  summarise(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  ggplot(aes(x = aisle_id, y = number, color = department)) +
+  geom_point() +
+  labs(
+    y = "Number of items ordered", 
+    x = "Aisle ID",
+    title = "Number of items ordered by aisles"
+  ) +
+  viridis::scale_color_viridis(discrete = TRUE)
+
+instacart_data %>%
+  group_by(aisle, department) %>% 
+  summarise(number = n()) %>% 
+  arrange(desc(number)) %>% 
+  ggplot(aes(x = aisle, y = number, color = department)) +
+  geom_bar(stat = "identity") +
+  labs(
+    y = "Number of items ordered", 
+    x = "Aisle ID",
+    title = "Number of items ordered by aisles"
+  ) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 90))
 
 
 ```
@@ -212,8 +267,32 @@ instacart_data %>%
 3. _*Make a table showing the most popular item aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.*_
 
 ```{r, eval=FALSE}
-# NOT SURE WHAT THIS IS ASKING...
+# individually...
+instacart_data %>% 
+  group_by(aisle, product_name) %>% 
+  filter(aisle == "dog food care") %>%
+  summarise(
+    n = n()) %>% 
+  arrange(desc(n)) %>% 
+  top_n(5)
 
+instacart_data %>% 
+  group_by(aisle, product_name) %>% 
+  filter(aisle == "packaged vegetables fruits") %>%
+  summarise(
+    n = n()) %>% 
+  arrange(desc(n)) %>% 
+  top_n(5)
+  
+instacart_data %>% 
+  group_by(aisle, product_name) %>% 
+  filter(aisle == "baking ingredients") %>%
+  summarise(
+    n = n()) %>% 
+  arrange(desc(n)) %>% 
+  top_n(5)
+
+# altogether now...
 instacart_data %>% 
   filter(aisle == "baking ingrediants" | aisle == "dog food care" | 
            aisle == " packeged vegetables fruits") %>% 
@@ -224,16 +303,18 @@ instacart_data %>%
   arrange(desc(n)) %>% 
   top_n(5)
 
-
 instacart_data %>% 
   filter(aisle == "baking ingrediants" | aisle == "dog food care" | 
-           aisle == " packeged vegetables fruits") %>% 
-  group_by(aisle, product_name) %>% 
+           aisle == "packeged vegetables fruits") %>% 
+  group_by(aisle_id, product_name) %>% 
   summarise(
     n = n()) %>% 
-  spread(key = aisle, value = n) %>% 
+  spread(key = aisle_id, value = n) %>% 
   arrange(desc(n)) %>% 
   top_n(5)
+
+instacart_data %>% 
+  filter(aisle %in% c("baking ingrediants", "dog food care", "packeged vegetables fruits"))
 ```
 
 4. _*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*_
@@ -307,7 +388,24 @@ For snowfall, the most commonly observed value is **0 mm**, which makes sense as
 
 2. _*Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?*_
 
-```{r, collapse=TRUE}
+```{r, collapse=TRUE, eval=FALSE}
+# playing around...
+ny_noaa_data %>% 
+  filter(month == "01" | month == "07") %>% 
+  mutate(
+    month = month.name[as.numeric(month)]) %>% 
+  mutate(
+    mean_tmax = mean(tmax, na.rm = TRUE)) %>% 
+  ggplot(aes(x = year, y = mean_tmax)) +
+  geom_point(alpha = 0.3, na.rm = TRUE) +
+  facet_grid(~ month) +
+  labs(
+    title = "Average Maximum Temperature at Stations in January and July (1981-2010)", 
+    x = "Year", 
+    y = "Average Maximum Temperature (ºC)", 
+    legend = "State") +
+  theme(axis.text.x = element_text(angle = 90))
+
 # filter months want and rename, mutate - create mean temp, point plot and facet by month
 ny_noaa_data %>% 
   filter(month == "01" | month == "07") %>% 
