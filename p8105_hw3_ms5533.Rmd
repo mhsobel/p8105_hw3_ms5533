@@ -52,7 +52,7 @@ brfss_data %>%
   filter(number == 7)
 ```
 
-**Connecticut, Florida, and North Caroline** were observed at 7 locations in 2002.
+**Connecticut, Florida, and North Carolina** were observed at 7 locations in 2002.
 
 2. _*Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.*_
 
@@ -160,7 +160,8 @@ dow_plot =
                          "Wednesday", "Thursday", "Friday", 
                          "Saturday"))) %>% 
   ggplot(aes(x = order_dow)) +
-  geom_bar()
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90))
 
 # histogram: department
 department_plot = 
@@ -223,6 +224,16 @@ instacart_data %>%
   arrange(desc(n)) %>% 
   top_n(5)
 
+
+instacart_data %>% 
+  filter(aisle == "baking ingrediants" | aisle == "dog food care" | 
+           aisle == " packeged vegetables fruits") %>% 
+  group_by(aisle, product_name) %>% 
+  summarise(
+    n = n()) %>% 
+  spread(key = aisle, value = n) %>% 
+  arrange(desc(n)) %>% 
+  top_n(5)
 ```
 
 4. _*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*_
