@@ -218,48 +218,19 @@ instacart_data %>%
 3. _*Make a table showing the most popular item in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.*_
 
 ```{r, collapse=TRUE}
-# returns the number that is the max, but cannot seem to get the product name involved here
-# tried including product_name in a second group_by, but that did not work
-instacart_data %>% 
+# filter by aisles, group by aisle/product, sum counts, find top 1 in each
+table_max =
+  instacart_data %>% 
   filter(aisle == "baking ingredients" | aisle == "dog food care" | 
            aisle == "packaged vegetables fruits") %>% 
   group_by(aisle, product_name) %>% 
   summarise(
     n = n()) %>%
-  group_by(aisle) %>% 
-  summarise(
-    max = max(n))
-
-# compute individually
-max_baking = instacart_data %>% 
-  filter(aisle == "baking ingredients") %>% 
-  group_by(aisle, product_name) %>% 
-  summarise(
-    n = n()) %>%
-  arrange(desc(n)) %>% 
-  top_n(1)
-max_dog = instacart_data %>% 
-  filter(aisle == "dog food care") %>% 
-  group_by(aisle, product_name) %>% 
-  summarise(
-    n = n()) %>%
-  arrange(desc(n)) %>% 
-  top_n(1)
-max_veg = instacart_data %>% 
-  filter(aisle == "packaged vegetables fruits") %>% 
-  group_by(aisle, product_name) %>% 
-  summarise(
-    n = n()) %>%
-  arrange(desc(n)) %>% 
-  top_n(1)
-
-table_max = 
-  bind_rows(max_baking, max_dog, max_veg) %>% 
+  top_n(1) %>% 
   rename(
     Aisle = aisle, 
     Item = product_name, 
-    Counts = n
-  )
+    Counts = n)
 ```
 
 **Most popular item in selected aisles**
@@ -358,12 +329,14 @@ ny_noaa_data %>%
   theme(axis.text.x = element_text(angle = 90))
 ```
 
+There are outliers in both plots. There are mostly high temperature outliers in January and low temperature outliers in July.
+
 3. _*Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.*_
 
 ```{r}
 tmax_tmin_plot = 
   ny_noaa_data %>% 
-  ggplot(aes(x = tmax, y = tmin)) +
+  ggplot(aes(x = tmax, y = tmin, color = )) +
   geom_hex(na.rm = TRUE) +
   theme(legend.position = "right") +
   labs(
@@ -384,7 +357,6 @@ snow_dist =
     title = "Distribution of snowfall by year (1981-2010)", 
     y = "Snowfall (mm)",
     x = "Year"
-    
   )
 
 tmax_tmin_plot + snow_dist
