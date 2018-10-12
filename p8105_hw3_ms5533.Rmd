@@ -98,22 +98,19 @@ brfss_data %>%
 
 ```{r, collapse=TRUE}
 # group by year, state, and response, mean of "data_value"
-# line plot year vs mean, facet by "response", turn off legend --> too many states 
+# boxplot plot year vs mean, group by year, facet by "response"
 brfss_data %>% 
   group_by(year, locationabbr, response) %>% 
   summarise(
     mean = mean(data_value, na.rm = TRUE)
   ) %>% 
-  ggplot(aes(x = year, y = mean, color = locationabbr)) +
-  geom_point(alpha = .5) +
+  ggplot(aes(x = year, y = mean, group = year)) +
+  geom_boxplot() +
   facet_grid(~ response) + 
   labs(
     title = "Average Percent of Each Response by State (2002-2010)", 
     x = "Year", 
-    y = "Average Percent", 
-    legend = "State") +
-  viridis::scale_color_viridis(discrete = TRUE) +
-  theme(legend.position = "none") +
+    y = "Average Percent") +
   theme(axis.text.x = element_text(angle = 90))
 ```
 
@@ -215,7 +212,7 @@ instacart_data %>%
 
 3. _*Make a table showing the most popular item in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”.*_
 
-```{r, collapse=TRUE}
+```{r, collapse=TRUE, eval=FALSE}
 table_max = 
   instacart_data %>% 
   filter(aisle == "baking ingredients" | aisle == "dog food care" | 
@@ -223,6 +220,7 @@ table_max =
   group_by(aisle, product_name) %>% 
   summarise(
     n = n()) %>%
+  arrange(desc(n)) %>% 
   group_by(aisle, product_name) %>% 
   summarise(
     max = max(n)) %>% 
@@ -240,10 +238,12 @@ instacart_data %>%
   group_by(aisle) %>% 
   summarise(
     max = max(n))
+
+
 ```
 
 **Most popular item in selected aisles**
-`r kable(table_max)`
+r kable(table_max)
 
 4. _*Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).*_
 
